@@ -13,9 +13,12 @@ final class Note {
     var content: String
     var attachedImage: Data?
 
-    init(id: UUID = .init(), content: String, attachedImage: Data? = nil) {
+    @Relationship(inverse: \Song.notes) var song: Song?
+
+    init(id: UUID = .init(), content: String, attachedImage: Data? = nil, song: Song? = nil) {
         self.id = id
         self.content = content
         self.attachedImage = attachedImage
+        self.song = song
     }
 }

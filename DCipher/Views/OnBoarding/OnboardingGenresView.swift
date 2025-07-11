@@ -44,7 +44,7 @@ struct OnboardingGenresView: View {
                             .font(.custom("FiraMono", size: 16))
                             .padding(.vertical, 8)
                             .frame(maxWidth: .infinity)
-                            .foregroundColor(viewModel.selectedGenres.contains(genre) ? .white : .appBodyText)
+                            .foregroundColor(viewModel.selectedGenres.contains(genre) ? .appBackgroundComponents : .appBodyText)
                             .background(viewModel.selectedGenres.contains(genre) ? Color.appPrimary : .clear)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)

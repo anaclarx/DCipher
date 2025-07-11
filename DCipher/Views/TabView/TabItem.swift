@@ -13,7 +13,7 @@ enum TabItem: Hashable {
     var label: some View {
         switch self {
         case .menu:
-            return Label("Menu", systemImage: "house")
+            return Label("Home", systemImage: "house")
         case .search:
             return Label("Search", systemImage: "magnifyingglass")
         case .setlists:

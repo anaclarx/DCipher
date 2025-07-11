@@ -37,6 +37,22 @@
 			);
 			target = E006E6A82DF9B422005E34EA /* DCipher */;
 		};
+		E054090D2E21B2F800C164A6 /* Exceptions for "DCipher" folder in "DCipherTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Assets/FliegeMono-Medium.otf",
+				"Assets/FliegeMono-Regular.otf",
+			);
+			target = E006E6BC2DF9B424005E34EA /* DCipherTests */;
+		};
+		E054090E2E21B2F800C164A6 /* Exceptions for "DCipher" folder in "DCipherUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Assets/FliegeMono-Medium.otf",
+				"Assets/FliegeMono-Regular.otf",
+			);
+			target = E006E6C62DF9B424005E34EA /* DCipherUITests */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -44,6 +60,8 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				E006E6CF2DF9B424005E34EA /* Exceptions for "DCipher" folder in "DCipher" target */,
+				E054090D2E21B2F800C164A6 /* Exceptions for "DCipher" folder in "DCipherTests" target */,
+				E054090E2E21B2F800C164A6 /* Exceptions for "DCipher" folder in "DCipherUITests" target */,
 			);
 			path = DCipher;
 			sourceTree = "<group>";

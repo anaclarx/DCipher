@@ -9,12 +9,18 @@ import  SwiftUI
 import Foundation
 
 struct SongRowView: View {
+    let viewModel: SongRowViewModel
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Wonderwall")
+            Text(viewModel.title)
                 .font(.headline)
                 .foregroundColor(.appTitleText)
-            Text("Oasis - Practice")
+
+            Text(viewModel.artist)
+                .font(.subheadline)
+                .foregroundColor(.appBodyText)
+            Text(viewModel.goal)
                 .font(.subheadline)
                 .foregroundColor(.appBodyText)
         }

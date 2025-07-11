@@ -34,14 +34,12 @@ struct DCipherApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                if hasSeenOnboarding {
-                    TabNavigationView()
-                } else {
-                    OnboardingWelcomeView()
-                }
+            if hasSeenOnboarding {
+                TabNavigationView()
+            } else {
+                OnboardingWelcomeView()
             }
-            .modelContainer(sharedModelContainer)
         }
+        .modelContainer(sharedModelContainer)
     }
 }

@@ -6,28 +6,43 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct TabNavigationView: View {
     @State private var selectedTab: TabItem = .menu
-
+    @Environment(\.modelContext) private var modelContext
+    @State private var hasSeeded = false
+    
+    init() {
+        UITabBar.appearance().backgroundColor = UIColor(Color.appBackgroundComponents)
+    }
+    
     var body: some View {
-        TabView(selection: $selectedTab) {
-            HomeView()
-                .tabItem { TabItem.menu.label }
-                .tag(TabItem.menu)
+        HStack{
+            TabView(selection: $selectedTab) {
+                HomeView()
+                    .tabItem { TabItem.menu.label }
+                    .tag(TabItem.menu)
+                
+                SearchView()
+                    .tabItem { TabItem.search.label }
+                    .tag(TabItem.search)
 
-            SearchView()
-                .tabItem { TabItem.search.label }
-                .tag(TabItem.search)
+                SetlistsListView()
+                    .tabItem { TabItem.setlists.label }
+                    .tag(TabItem.setlists)
 
-            SetlistsListView()
-                .tabItem { TabItem.setlists.label }
-                .tag(TabItem.setlists)
-
-            SongsListView()
-                .tabItem { TabItem.songs.label }
-                .tag(TabItem.songs)
+                SongsListView()
+                    .tabItem { TabItem.songs.label }
+                    .tag(TabItem.songs)
+            }
+            .tint(.appPrimary)
+            .task {
+                if !hasSeeded {
+                    await MockDataSeeder.seedIfNeeded(context: modelContext)
+                    hasSeeded = true
+                }
+            }
         }
-        .tint(.appPrimary)
     }
 }

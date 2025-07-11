@@ -68,4 +68,25 @@ class SongDAO: SongDAOProtocol {
         let descriptor = FetchDescriptor<Song>(predicate: predicate)
         return try context.fetch(descriptor)
     }
+    
+    func addSong(from result: CifraClubResult) {
+           let song = Song(
+               title: result.name,
+               artist: result.artist,
+               type: "Imported",
+               status: "",
+               goal: ""
+           )
+
+           song.lyrics = result.cifra.joined(separator: "\n")
+           song.source = .CIFRA_CLUB
+
+           context.insert(song)
+
+           do {
+               try context.save()
+           } catch {
+               print("Erro ao salvar a música: \(error.localizedDescription)")
+           }
+       }
 }

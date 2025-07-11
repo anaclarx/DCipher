@@ -7,35 +7,149 @@
 import Foundation
 import SwiftUI
 
+import Foundation
+import SwiftUI
+
 struct SearchView: View {
+    @State private var isSearching = false
     @State private var searchText = ""
-
+    @State private var selectedResult: CifraClubResult? = nil
+    
+    
+    @StateObject private var viewModel = SearchViewModel()
+    
     var body: some View {
-        VStack(spacing: 24) {
-            Text("Search")
-                .font(.largeTitle)
-                .foregroundColor(.appPrimary)
-
-            TextField("Import a new song", text: $searchText)
-                .padding(10)
-                .background(Color.white)
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.appBorder, lineWidth: 1)
-                )
-                .padding(.horizontal)
-
-            Spacer()
-            Image(systemName: "music.note.list")
-                .resizable()
-                .frame(width: 100, height: 100)
-                .foregroundColor(.appPrimary)
-            Text("Ready to explore?\nStart a new search and build your musical world!")
-                .multilineTextAlignment(.center)
-                .foregroundColor(.appBodyText)
-            Spacer()
+        NavigationStack {
+            VStack(spacing: 16) {
+                if isSearching {
+                    VStack(spacing: 12) {
+                        if viewModel.isLoadingITunes {
+                            ProgressView("Buscando músicas...")
+                        } else if viewModel.isLoadingCifra && selectedResult == nil {
+                            ProgressView("Buscando cifra...")
+                        }
+                        else if let error = viewModel.error {
+                            VStack(spacing: 8) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.yellow)
+                                    .font(.system(size: 40))
+                                Text(error)
+                                    .multilineTextAlignment(.center)
+                                    .foregroundColor(.appBodyText)
+                                    .font(.fliegeMonoRegular(size: 16))
+                            }
+                            .padding()
+                        }
+                        else if !viewModel.searchResults.isEmpty {
+                            List(viewModel.searchResults) { song in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(song.trackName)
+                                        .font(.fliegeMonoRegular(size: 16))
+                                        .foregroundColor(.appBodyText)
+                                    Text(song.artistName)
+                                        .font(.fliegeMonoMedium(size: 16))
+                                        .foregroundColor(.appTitleText)
+                                }
+                                .padding(.vertical, 4)
+                                .listRowBackground(Color.appBackground)
+                                .background(Color.appBackground)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    Task {
+                                        if let result = await viewModel.fetchChordResult(for: song.trackName, artist: song.artistName) {
+                                            viewModel.isLoadingCifra = false
+                                            selectedResult = result
+                                        }
+                                    }
+                                }
+                            }
+                            .listStyle(.plain)
+                            .scrollContentBackground(.hidden)
+                            .background(Color.appBackground)
+                        }
+                        
+                        if let result = viewModel.chordResult {
+                            ScrollView {
+                                Text(result)
+                                    .font(.system(.body, design: .monospaced))
+                                    .padding()
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                } else {
+                    Spacer()
+                    Image(systemName: "music.note.list")
+                        .resizable()
+                        .frame(width: 100, height: 100)
+                        .foregroundColor(.appPrimary)
+                    Text("Ready to explore?\nStart a new search and build your musical world!")
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.appBodyText)
+                    Spacer()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.appBackground)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if isSearching {
+                    ToolbarItem(placement: .principal) {
+                        HStack {
+                            TextField("Search...", text: $searchText)
+                                .font(.fliegeMonoRegular(size: 16))
+                                .foregroundColor(.appBodyText)
+                                .textFieldStyle(PlainTextFieldStyle())
+                                .padding(8)
+                                .background(Color.appBackgroundComponents)
+                                .cornerRadius(10)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .stroke(Color.appBorder, lineWidth: 1)
+                                )
+                                .onSubmit {
+                                    viewModel.searchSongs(term: searchText)
+                                }
+                            
+                            Button(action: {
+                                searchText = ""
+                                isSearching = false
+                                viewModel.clear()
+                            }) {
+                                Image(systemName: "xmark")
+                                    .foregroundColor(.appTitleText)
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+                } else {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Text("Search")
+                            .font(.fliegeMonoMedium(size: 28))
+                            .foregroundColor(.appTitleText)
+                    }
+                    
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: {
+                            withAnimation(.easeInOut(duration: 0.4)) {
+                                isSearching = true
+                            }
+                        }) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(.appTitleText)
+                        }
+                    }
+                }
+            }
+            .toolbarBackground(Color.appBackgroundComponents, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .sheet(item: $selectedResult) { result in
+                SongDetailModalView(song: result) {
+                    viewModel.addSongToLibrary(from: result)
+                    selectedResult = nil
+                }
+            }
         }
-        .background(Color.appBackground)
     }
 }

@@ -9,13 +9,15 @@ import Foundation
 import SwiftUI
 
 struct SetlistCardView: View {
+    let viewModel: SetlistCardViewModel
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Setlist 1")
-                .font(.headline)
+            Text(viewModel.title)
+                .font(.fliegeMonoRegular(size: 16))
                 .foregroundColor(.appTitleText)
-            Text("12 songs")
-                .font(.subheadline)
+            Text("\(viewModel.songCount) songs")
+                .font(.fliegeMonoMedium(size: 14))
                 .foregroundColor(.appBodyText)
         }
         .padding()

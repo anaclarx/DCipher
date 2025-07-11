@@ -16,10 +16,12 @@ final class Song {
     var type: String
     var status: String
     var goal: String
-    var notes: [Note]
+
+    @Relationship var notes: [Note]
+
     @Relationship(inverse: \Setlist.songs) var setlist: Setlist?
-    var originalLyrics: OriginalSong?
-    var importInfo: ImportedSong?
+    var lyrics: String?
+    var source: SourceEnum?
 
     init(id: UUID = .init(), title: String, artist: String, type: String, status: String, goal: String) {
         self.id = id
