@@ -20,4 +20,12 @@ import Foundation
 struct SetlistCardViewModel {
     let title: String
     let songCount: Int
+    let setlist: Setlist
+
+    init(setlist: Setlist) {
+        self.title = setlist.title
+        self.songCount = setlist.songs.count
+        self.setlist = setlist
+    }
 }
+

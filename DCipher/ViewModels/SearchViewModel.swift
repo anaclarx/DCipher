@@ -14,6 +14,8 @@
 //
 import Foundation
 import SwiftData
+import SwiftUI
+
 
 @MainActor
 class SearchViewModel: ObservableObject {
@@ -22,6 +24,9 @@ class SearchViewModel: ObservableObject {
     @Published var isLoadingITunes = false
     @Published var isLoadingCifra = false
     @Published var error: String? = nil
+    @Published var progress: Double = 0
+    @Published var totalAttempts: Int = 0
+
 
     private var verifiedURLCache: Set<String> = []
 
@@ -66,39 +71,46 @@ class SearchViewModel: ObservableObject {
     }
 
     func fetchChordResult(for song: String, artist: String) async -> CifraClubResult? {
-        isLoadingCifra = true
-        error = nil
+        await MainActor.run {
+            self.isLoadingCifra = true
+            self.error = nil
+            self.progress = 0
+        }
 
-        let siteBaseURL = "https://www.cifraclub.com.br"
         let apiBaseURL = "http://192.168.0.133:3000"
-
         let artistSlugs = generateArtistSlugVariations(from: artist, song: song)
 
-        for (artistSlug, songSlug) in artistSlugs {
-            let testURLString = "\(siteBaseURL)/\(artistSlug)/\(songSlug)/"
-            guard let testURL = URL(string: testURLString) else { continue }
+        await MainActor.run {
+            self.totalAttempts = artistSlugs.count
+        }
 
-            print("🔍 Testando URL: \(testURLString)")
+        for (index, (artistSlug, songSlug)) in artistSlugs.enumerated() {
+            let apiURLString = "\(apiBaseURL)/artists/\(artistSlug)/songs/\(songSlug)"
+            guard let apiURL = URL(string: apiURLString) else { continue }
 
-            let isValid = await isValidCifraClubURL(testURL)
+            print("🎸 Tentando cifra via API: \(apiURLString)")
 
-            if isValid {
-                let apiURLString = "\(apiBaseURL)/artists/\(artistSlug)/songs/\(songSlug)"
-                guard let apiURL = URL(string: apiURLString) else { continue }
+            do {
+                let (data, _) = try await URLSession.shared.data(from: apiURL)
+                let result = try JSONDecoder().decode(CifraClubResult.self, from: data)
 
-                do {
-                    let (data, _) = try await URLSession.shared.data(from: apiURL)
-                    let result = try JSONDecoder().decode(CifraClubResult.self, from: data)
-                    await MainActor.run {
-                        self.isLoadingCifra = false
-                    }
-                    return result
-                } catch {
-                    await MainActor.run {
-                        self.error = "Erro ao buscar cifra da API local."
-                        self.isLoadingCifra = false
-                    }
-                    return nil
+                // ⚠️ Verifica se o array de cifras está vazio
+                if result.cifra.isEmpty {
+                    continue
+                }
+
+                await MainActor.run {
+                    self.isLoadingCifra = false
+                    self.progress = 1
+                }
+                return result
+            } catch {
+                print("❌ Erro ao decodificar ou carregar cifra: \(error.localizedDescription)")
+            }
+
+            await MainActor.run {
+                withAnimation(.linear(duration: 0.2)) {
+                    self.progress = Double(index + 1) / Double(max(1, artistSlugs.count))
                 }
             }
         }
@@ -106,46 +118,10 @@ class SearchViewModel: ObservableObject {
         await MainActor.run {
             self.error = "Unfortunately, this music is still not available to download. Try with another one."
             self.isLoadingCifra = false
+            self.progress = 1
         }
+
         return nil
-    }
-
-
-    func isValidCifraClubURL(_ url: URL) async -> Bool {
-        do {
-            var request = URLRequest(url: url)
-            request.httpMethod = "GET"
-            request.timeoutInterval = 5
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-
-            // Verifica se houve redirecionamento para a homepage
-            if let finalURL = (response as? HTTPURLResponse)?.url {
-                if finalURL.absoluteString == "https://www.cifraclub.com.br/" {
-                    return false
-                }
-            }
-
-            // Como fallback, verifica se o HTML tem alguma tag típica de páginas válidas
-            if let html = String(data: data, encoding: .utf8),
-               html.contains("cifra de") || html.contains("Tom:") {
-                return true
-            }
-        } catch {
-            return false
-        }
-
-        return false
-    }
-
-    func addSongToLibrary(from result: CifraClubResult) {
-        guard let modelContext = try? ModelContext(SwiftDataContainer.shared.container) else {
-            print("Erro ao obter contexto")
-            return
-        }
-
-        let dao = SongDAO(context: modelContext)
-        dao.addSong(from: result)
     }
 
     private func generateArtistSlugVariations(from artist: String, song: String) -> [(String, String)] {

@@ -8,18 +8,24 @@
 import Foundation
 import SwiftData
 
-@Observable
-class SongViewModel {
-    private let dao: SongDAOProtocol
+@MainActor
+class SongViewModel: ObservableObject {
+    private var dao: SongDAOProtocol?
 
-    var songs: [Song] = []
+    @Published var songs: [Song] = []
+    var isConfigured: Bool {
+        dao != nil
+    }
 
-    init(context: ModelContext) {
+    init() {}
+
+    func configure(with context: ModelContext) {
         self.dao = SongDAO(context: context)
         loadAllSongs()
     }
 
     func loadAllSongs() {
+        guard let dao else { return }
         do {
             songs = try dao.fetchAll()
         } catch {
@@ -27,16 +33,47 @@ class SongViewModel {
         }
     }
 
-    func addSong(_ song: Song) {
+    func addSong(from result: CifraClubResult) -> Bool {
+        guard let dao else { return false }
+
+        if dao.exists(title: result.name, artist: result.artist) {
+            print("🎵 Música já existe na biblioteca")
+            return false
+        }
+
+        let song = Song(
+            title: result.name,
+            artist: result.artist,
+            type: "imported",
+            status: "new",
+            goal: "study"
+        )
+        song.lyrics = result.cifra.joined(separator: "\n")
+        song.source = .CIFRA_CLUB
+
+        do {
+            try dao.create(song)
+            loadAllSongs()
+            return true
+        } catch {
+            print("Error creating song: \(error)")
+            return false
+        }
+    }
+
+
+    func addOriginalSong(_ song: Song) {
+        guard let dao else { return }
         do {
             try dao.create(song)
             loadAllSongs()
         } catch {
-            print("Error creating song: \(error)")
+            print("Error creating original song: \(error)")
         }
     }
 
     func deleteSong(_ song: Song) {
+        guard let dao else { return }
         do {
             try dao.delete(song)
             loadAllSongs()
@@ -46,26 +83,12 @@ class SongViewModel {
     }
 
     func search(byTitle title: String) {
+        guard let dao else { return }
         do {
             songs = try dao.search(byTitle: title)
         } catch {
             print("Search error: \(error)")
         }
     }
-
-    func search(byGoal goal: String) {
-        do {
-            songs = try dao.search(byGoal: goal)
-        } catch {
-            print("Search error: \(error)")
-        }
-    }
-
-    func search(byType type: String) {
-        do {
-            songs = try dao.search(byType: type)
-        } catch {
-            print("Search error: \(error)")
-        }
-    }
 }
+

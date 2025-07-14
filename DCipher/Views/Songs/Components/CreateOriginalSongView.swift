@@ -36,7 +36,7 @@ struct CreateOriginalSongView: View {
                     TextField("Artist", text: $artist)
                     TextField("Goal", text: $goal)
 
-                    Text("Lyrics")
+                    Text("Music Sheet")
                         .font(.fliegeMonoRegular(size: 18))
                         .foregroundColor(.appBodyText)
 
@@ -63,8 +63,9 @@ struct CreateOriginalSongView: View {
                         status: "not_started",
                         goal: goal
                     )
+                    song.lyrics = lyrics
                     song.source = SourceEnum.ORIGINAL
-                    viewModel.addSong(song)
+                    viewModel.addOriginalSong(song)
                     dismiss()
                 }) {
                     Text("Save Song")

@@ -9,16 +9,19 @@ import SwiftData
 
 @Model
 final class Note {
-    @Attribute(.unique) var id: UUID
-    var content: String
-    var attachedImage: Data?
+    var content: String?
+    var targetText: String?
+    var color: String?
 
-    @Relationship(inverse: \Song.notes) var song: Song?
+    @Relationship var song: Song?
 
-    init(id: UUID = .init(), content: String, attachedImage: Data? = nil, song: Song? = nil) {
-        self.id = id
+    init(content: String?, targetText: String?, color: String?, song: Song?) {
         self.content = content
-        self.attachedImage = attachedImage
+        self.targetText = targetText
+        self.color = color
         self.song = song
     }
 }
+
+
+

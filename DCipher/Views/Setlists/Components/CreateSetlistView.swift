@@ -22,15 +22,17 @@ struct CreateSetlistView: View {
     @State private var selectedType: String = "Practice"
     let viewModel: SetlistViewModel
     let onDismiss: () -> Void
-
+    
+    let songToAdd: Song?
+    
     let types = ["Practice", "Performance", "Recording"]
-
+    
     var body: some View {
         VStack(spacing: 24) {
             Text("Choose your setlist name")
                 .font(.fliegeMonoRegular(size: 18))
                 .foregroundColor(.appBodyText)
-
+            
             TextField("My Playlist", text: $title)
                 .multilineTextAlignment(.center)
                 .font(.fliegeMonoMedium(size: 28))
@@ -44,7 +46,7 @@ struct CreateSetlistView: View {
                     alignment: .bottom
                 )
                 .padding(.horizontal, 32)
-
+            
             Picker("Type", selection: $selectedType) {
                 ForEach(types, id: \.self) {
                     Text($0)
@@ -53,10 +55,14 @@ struct CreateSetlistView: View {
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 32)
-
+            
             Button(action: {
                 let newSetlist = Setlist(title: title, type: selectedType)
+                if let song = songToAdd {
+                    newSetlist.songs.append(song)
+                }
                 viewModel.addSetlist(newSetlist)
+                
                 withAnimation(.easeInOut) {
                     onDismiss()
                 }
@@ -71,7 +77,7 @@ struct CreateSetlistView: View {
                     .opacity(title.isEmpty ? 0.5 : 1)
             }
             .disabled(title.isEmpty)
-
+            
             Spacer()
         }
         .padding()
@@ -79,3 +85,4 @@ struct CreateSetlistView: View {
         .background(Color.appBackground)
     }
 }
+

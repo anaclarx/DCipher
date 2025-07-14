@@ -6,6 +6,7 @@
 //
 import Foundation
 import SwiftData
+import Swift
 
 @Model
 final class Setlist {
@@ -13,7 +14,9 @@ final class Setlist {
     var title: String
     var createdDate: Date
     var type: String
-    @Relationship var songs: [Song]
+    var updatedAt: Date = Date()
+
+    @Relationship(deleteRule: .nullify) var songs: [Song] = []
 
     init(id: UUID = .init(), title: String, type: String, createdDate: Date = .now) {
         self.id = id

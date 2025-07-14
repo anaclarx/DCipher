@@ -14,11 +14,9 @@ struct OnboardingWelcomeView: View {
                 Spacer()
 
                 Text("Welcome to your musical workspace")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.fliegeMonoMedium(size: 22))
                     .foregroundColor(.appTitleText)
                     .multilineTextAlignment(.center)
-                    .font(.custom("FiraMono", size: 22))
 
                 Image(systemName: "doc.text.fill")
                     .resizable()
@@ -27,7 +25,7 @@ struct OnboardingWelcomeView: View {
                     .foregroundColor(.appPrimary)
 
                 Text("Create, organize, and rehearse your songs – all in one place.")
-                    .font(.custom("FiraMono", size: 16))
+                    .font(.fliegeMonoMedium(size: 16))
                     .foregroundColor(.appBodyText)
                     .multilineTextAlignment(.center)
 
@@ -36,7 +34,7 @@ struct OnboardingWelcomeView: View {
                 NavigationLink("Let's Start", destination: OnboardingGenresView())
                     .buttonStyle(.borderedProminent)
                     .tint(.appPrimary)
-                    .font(.custom("FiraMono", size: 18))
+                    .font(.fliegeMonoMedium(size: 18))
             }
             .padding()
             .background(Color.appBackground.ignoresSafeArea())

@@ -14,6 +14,7 @@ struct SearchView: View {
     @State private var isSearching = false
     @State private var searchText = ""
     @State private var selectedResult: CifraClubResult? = nil
+    @Environment(\.modelContext) private var context
     
     
     @StateObject private var viewModel = SearchViewModel()
@@ -24,15 +25,24 @@ struct SearchView: View {
                 if isSearching {
                     VStack(spacing: 12) {
                         if viewModel.isLoadingITunes {
-                            ProgressView("Buscando músicas...")
+                            ProgressView("Searching")
                         } else if viewModel.isLoadingCifra && selectedResult == nil {
-                            ProgressView("Buscando cifra...")
+                            VStack(spacing: 8) {
+                                ProgressView("Importing Music Sheet")
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                
+                                ProgressView(value: viewModel.progress)
+                                    .progressViewStyle(LinearProgressViewStyle())
+                                    .tint(.appPrimary)
+                                    .frame(height: 4)
+                            }
+                            .padding(.horizontal)
                         }
                         else if let error = viewModel.error {
                             VStack(spacing: 8) {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(.yellow)
-                                    .font(.system(size: 40))
+                                    .font(.fliegeMonoMedium(size: 40))
                                 Text(error)
                                     .multilineTextAlignment(.center)
                                     .foregroundColor(.appBodyText)
@@ -71,7 +81,7 @@ struct SearchView: View {
                         if let result = viewModel.chordResult {
                             ScrollView {
                                 Text(result)
-                                    .font(.system(.body, design: .monospaced))
+                                    .font(.fliegeMonoRegular(size: 16))
                                     .padding()
                             }
                         }
@@ -86,6 +96,7 @@ struct SearchView: View {
                     Text("Ready to explore?\nStart a new search and build your musical world!")
                         .multilineTextAlignment(.center)
                         .foregroundColor(.appBodyText)
+                        .font(.fliegeMonoMedium(size: 18))
                     Spacer()
                 }
             }
@@ -145,10 +156,13 @@ struct SearchView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .sheet(item: $selectedResult) { result in
-                SongDetailModalView(song: result) {
-                    viewModel.addSongToLibrary(from: result)
-                    selectedResult = nil
-                }
+                SongDetailModalView(
+                    song: result,
+                    onAdd: {
+                        selectedResult = nil
+                    },
+                    viewModel: viewModel
+                )
             }
         }
     }

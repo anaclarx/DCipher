@@ -5,33 +5,37 @@
 //  Created by Ana Clara Filgueiras Granato on 11/06/25.
 //
 
-import Foundation
 import SwiftUI
+import SwiftData
 
 struct SetlistsListView: View {
     @Environment(\.modelContext) private var context
-    @State private var viewModel: SetlistViewModel? = nil
+    @StateObject private var viewModel: SetlistViewModel
     @State private var showingCreateModal = false
+
+    init() {
+        // Inicialização com placeholder (substituído no onAppear)
+        _viewModel = StateObject(wrappedValue: SetlistViewModel(context: nil))
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(spacing: 12) {
-                        if let viewModel = viewModel {
-                            ForEach(viewModel.setlists, id: \.id) { setlist in
-                                SetlistRowView(viewModel: SetlistRowViewModel(setlist: setlist))
-                            }
-                        } else {
-                            ProgressView()
-                                .onAppear {
-                                    viewModel = SetlistViewModel(context: context)
-                                }
+                        ForEach(viewModel.setlists, id: \.id) { setlist in
+                            SetlistRowView(
+                                setlist: setlist,
+                                viewModel: viewModel
+                            )
                         }
                     }
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .onAppear {
+                viewModel.updateContext(context) // injeta contexto real
             }
             .background(Color.appBackground)
             .navigationBarTitleDisplayMode(.inline)
@@ -56,16 +60,17 @@ struct SetlistsListView: View {
                 }
             }
             .sheet(isPresented: $showingCreateModal) {
-                if let viewModel = viewModel {
-                    CreateSetlistView(viewModel: viewModel) {
-                        // Callback para fechar o modal de dentro da view
+                CreateSetlistView(
+                    viewModel: viewModel,
+                    onDismiss: {
                         withAnimation(.easeInOut) {
                             showingCreateModal = false
                         }
-                    }
-                    .presentationDetents([.fraction(0.5)])
-                    .presentationDragIndicator(.visible)
-                }
+                    },
+                    songToAdd: nil
+                )
+                .presentationDetents([.fraction(0.5)])
+                .presentationDragIndicator(.visible)
             }
             .toolbarBackground(Color.appBackgroundComponents, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
@@ -73,5 +78,3 @@ struct SetlistsListView: View {
         }
     }
 }
-
-

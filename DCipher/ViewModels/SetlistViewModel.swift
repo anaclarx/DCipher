@@ -8,40 +8,40 @@
 import Foundation
 import SwiftData
 
-@Observable
-class SetlistViewModel {
-    private let dao: SetlistDAOProtocol
 
-    var setlists: [Setlist] = []
+class SetlistViewModel: ObservableObject {
+    private var context: ModelContext?
+    @Published var setlists: [Setlist] = []
 
-    init(context: ModelContext) {
-        self.dao = SetlistDAO(context: context)
-        loadAllSetlists()
+    init(context: ModelContext?) {
+        self.context = context
+        fetchSetlists()
     }
 
-    func loadAllSetlists() {
+    func updateContext(_ newContext: ModelContext) {
+        self.context = newContext
+        fetchSetlists()
+    }
+
+    func fetchSetlists() {
+        guard let context = context else { return }
         do {
-            setlists = try dao.fetchAll()
+            let descriptor = FetchDescriptor<Setlist>(sortBy: [SortDescriptor(\.title)])
+            setlists = try context.fetch(descriptor)
         } catch {
-            print("Error fetching setlists: \(error)")
+            print("Erro ao buscar setlists: \(error)")
         }
     }
 
     func addSetlist(_ setlist: Setlist) {
-        do {
-            try dao.create(setlist)
-            loadAllSetlists()
-        } catch {
-            print("Error creating setlist: \(error)")
-        }
+        context?.insert(setlist)
+        fetchSetlists()
     }
 
     func deleteSetlist(_ setlist: Setlist) {
-        do {
-            try dao.delete(setlist)
-            loadAllSetlists()
-        } catch {
-            print("Error deleting setlist: \(error)")
-        }
+        context?.delete(setlist)
+        fetchSetlists()
     }
+    
 }
+

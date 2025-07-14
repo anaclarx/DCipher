@@ -7,19 +7,21 @@
 
 import Foundation
 import SwiftData
+import Swift 
 
 @Model
-final class Song {
+final class Song: Hashable, Equatable {
     @Attribute(.unique) var id: UUID
     var title: String
     var artist: String
     var type: String
     var status: String
     var goal: String
+    var updatedAt: Date = Date()
 
     @Relationship var notes: [Note]
-
-    @Relationship(inverse: \Setlist.songs) var setlist: Setlist?
+    
+    @Relationship(deleteRule: .nullify) var setlists: [Setlist] = []
     var lyrics: String?
     var source: SourceEnum?
 
@@ -31,5 +33,13 @@ final class Song {
         self.status = status
         self.goal = goal
         self.notes = []
+    }
+
+    static func == (lhs: Song, rhs: Song) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }

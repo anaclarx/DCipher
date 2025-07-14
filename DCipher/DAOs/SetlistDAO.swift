@@ -26,6 +26,14 @@ class SetlistDAO: SetlistDAOProtocol {
         context.insert(setlist)
         try context.save()
     }
+    
+    func fetchRecentSetlists(limit: Int = 5) throws -> [Setlist] {
+        let descriptor = FetchDescriptor<Setlist>(
+            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+        )
+        return try context.fetch(descriptor).prefix(limit).map { $0 }
+    }
+
 
     func fetchAll() throws -> [Setlist] {
         let descriptor = FetchDescriptor<Setlist>()
@@ -38,6 +46,7 @@ class SetlistDAO: SetlistDAOProtocol {
     }
 
     func update(_ setlist: Setlist) throws {
+        setlist.updatedAt = Date()
         try context.save()
     }
 }

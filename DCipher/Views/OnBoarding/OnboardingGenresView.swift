@@ -20,19 +20,18 @@ struct OnboardingGenresView: View {
                 Button("Skip") {
                     shouldNavigateToMenu = true
                 }
-                .font(.custom("FiraMono", size: 16))
+                .font(.fliegeMonoMedium(size: 16))
                 .padding(.trailing)
             }
 
             Text("Your music, your way")
-                .font(.title2)
+                .font(.fliegeMonoMedium(size: 22))
                 .fontWeight(.bold)
                 .foregroundColor(.appTitleText)
-                .font(.custom("FiraMono", size: 22))
 
             Text("Tell us your favorite music genres to receive tailored song suggestions!\nChoose at least one and max of 5")
                 .multilineTextAlignment(.center)
-                .font(.custom("FiraMono", size: 16))
+                .font(.fliegeMonoMedium(size: 16))
                 .foregroundColor(.appBodyText)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 12)], spacing: 12) {
@@ -41,7 +40,7 @@ struct OnboardingGenresView: View {
                         viewModel.toggleGenre(genre)
                     }) {
                         Text(genre)
-                            .font(.custom("FiraMono", size: 16))
+                            .font(.fliegeMonoMedium(size: 16))
                             .padding(.vertical, 8)
                             .frame(maxWidth: .infinity)
                             .foregroundColor(viewModel.selectedGenres.contains(genre) ? .appBackgroundComponents : .appBodyText)
@@ -62,7 +61,7 @@ struct OnboardingGenresView: View {
             .disabled(viewModel.selectedGenres.isEmpty)
             .buttonStyle(.borderedProminent)
             .tint(.appPrimary)
-            .font(.custom("FiraMono", size: 18))
+            .font(.fliegeMonoMedium(size: 18))
 
             Spacer()
         }

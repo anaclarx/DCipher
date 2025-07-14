@@ -19,6 +19,7 @@ import SwiftData
 
 struct SavedSongDetailView: View {
     @ObservedObject var viewModel: SavedSongDetailViewModel
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ScrollView {
@@ -26,10 +27,10 @@ struct SavedSongDetailView: View {
                 // Título e Artista
                 VStack(alignment: .leading, spacing: 4) {
                     Text(viewModel.song.title)
-                        .font(.title)
+                        .font(.fliegeMonoMedium(size: 24))
                         .foregroundColor(.appPrimary)
                     Text(viewModel.song.artist)
-                        .font(.subheadline)
+                        .font(.fliegeMonoMedium(size: 18))
                         .foregroundColor(.appBodyText)
                 }
 
@@ -40,14 +41,42 @@ struct SavedSongDetailView: View {
                     EditableField(label: "Goal", text: $viewModel.song.goal)
                 }
 
-                // Campo único para editar a cifra inteira
+                // Notas associadas à música
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Cifra")
-                        .font(.headline)
-                        .foregroundColor(.appTitleText)
+                    Text("Notes")
+                        .font(.fliegeMonoRegular(size: 16))
+                        .foregroundColor(.appBodyText)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            ForEach(viewModel.notes, id: \.id) { note in
+                                NoteCardView(note: note)
+                                    .onTapGesture {
+                                        viewModel.selectedNote = note // ← Carrega existente
+                                        viewModel.showNoteEditor = true
+                                    }
+                            }
+                        }
+                    }
+
+                    Button(action: {
+                        viewModel.selectedNote = nil // ← Indica nova nota
+                        viewModel.showNoteEditor = true
+                    }) {
+                        Label("Add Note", systemImage: "plus")
+                            .font(.fliegeMonoRegular(size: 14))
+                    }
+                    .padding(.top, 4)
+                }
+
+                // Campo de edição da cifra
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Music Sheet")
+                        .font(.fliegeMonoRegular(size: 16))
+                        .foregroundColor(.appBodyText)
 
                     TextEditor(text: $viewModel.lyricsText)
-                        .frame(minHeight: 200)
+                        .frame(minHeight: 300)
                         .padding(8)
                         .background(Color.appBackgroundComponents)
                         .cornerRadius(10)
@@ -56,6 +85,7 @@ struct SavedSongDetailView: View {
                                 .stroke(Color.appBorder, lineWidth: 1)
                         )
                 }
+
             }
             .padding()
         }
@@ -66,12 +96,49 @@ struct SavedSongDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Save Changes") {
                     viewModel.saveLyrics()
+                    dismiss()
                 }
                 .font(.fliegeMonoMedium(size: 14))
             }
         }
+        .sheet(isPresented: $viewModel.showNoteEditor) {
+            if let selectedNote = viewModel.selectedNote {
+                // CASO: Editando uma nota existente
+                NoteEditorView(
+                    note: selectedNote,
+                    onSave: { updatedNote in
+                        viewModel.updateNote(selectedNote, with: updatedNote)
+                        viewModel.showNoteEditor = false
+                    },
+                    onDelete: {
+                        viewModel.deleteNote(selectedNote)
+                        viewModel.showNoteEditor = false
+                    },
+                    song: viewModel.song
+                )
+            } else {
+                // CASO: Criando uma nova nota
+                NoteEditorView(
+                    note: nil,
+                    onSave: { newNote in
+                        viewModel.createNote(newNote)
+                        viewModel.showNoteEditor = false
+                    },
+                    onDelete: {
+                        viewModel.showNoteEditor = false
+                    },
+                    song: viewModel.song
+                )
+            }
+        }
+        .onChange(of: viewModel.showNoteEditor) {
+            if viewModel.showNoteEditor && viewModel.selectedNote == nil && viewModel.lyricsText.isEmpty {
+                viewModel.showNoteEditor = false
+            }
+        }
     }
 }
+
 
 
 private struct InfoRow: View {
@@ -91,3 +158,31 @@ private struct InfoRow: View {
         .padding(.vertical, 4)
     }
 }
+private struct NoteCardView: View {
+    let note: Note
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Note")
+                .font(.fliegeMonoRegular(size: 12))
+                .foregroundColor(.appTitleText)
+
+            Text(note.targetText ?? "-")
+                .font(.fliegeMonoMedium(size: 14))
+                .foregroundColor(.appTitleText)
+        }
+        .padding()
+        .background(
+            Color.fromString(note.color ?? "yellow")
+                .opacity(0.6)// cor 100% opaca
+        )
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.appTitleText, lineWidth: 1)
+        )
+        .frame(width: 120)
+    }
+}
+
+

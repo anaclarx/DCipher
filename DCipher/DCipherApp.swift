@@ -17,8 +17,8 @@ struct DCipherApp: App {
             Song.self,
             Setlist.self,
             Note.self,
-            Category.self,
-            User.self
+//            Category.self,
+//            User.self
         ])
         let modelConfiguration = ModelConfiguration(
             schema: schema,

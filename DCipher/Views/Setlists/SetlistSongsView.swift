@@ -16,15 +16,16 @@
 import SwiftUI
 
 struct SetlistSongsView: View {
-    @State var viewModel: SetlistSongsViewModel
+    @StateObject var viewModel: SetlistSongsViewModel
+    @Environment(\.modelContext) private var context
     @State var songViewModel: SongRowViewModel?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text(viewModel.setlist.title)
-                    .font(.largeTitle)
-                    .foregroundColor(.appPrimary)
+                    .font(.fliegeMonoMedium(size: 24))
+                    .foregroundColor(.appTitleText)
 
                 Spacer()
             }
@@ -33,13 +34,25 @@ struct SetlistSongsView: View {
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(viewModel.songs, id: \.id) { song in
-                        SongRowView(viewModel: SongRowViewModel(song: song))
+                        NavigationLink(
+                            destination: SavedSongDetailView(
+                                viewModel: SavedSongDetailViewModel(song: song, context: context) // 👈 FIX
+                            )
+                        ) {
+                            SongRowView(
+                                viewModel: SongRowViewModel(song: song),
+                                onDelete: {
+                                    viewModel.removeSong(song)
+                                },
+                                onAddToSetlist: {}
+                            )
+                        }
                     }
                 }
             }
         }
         .padding()
         .background(Color.appBackground.ignoresSafeArea())
-        .navigationBarBackButtonHidden(true)
+        .navigationBarBackButtonHidden(false)
     }
 }

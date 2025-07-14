@@ -37,12 +37,6 @@ struct TabNavigationView: View {
                     .tag(TabItem.songs)
             }
             .tint(.appPrimary)
-            .task {
-                if !hasSeeded {
-                    await MockDataSeeder.seedIfNeeded(context: modelContext)
-                    hasSeeded = true
-                }
-            }
         }
     }
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import Swift
 
 protocol SongDAOProtocol {
     func create(_ song: Song) throws
@@ -17,6 +18,7 @@ protocol SongDAOProtocol {
     func search(byTitle title: String) throws -> [Song]
     func search(byGoal goal: String) throws -> [Song]
     func search(byType type: String) throws -> [Song]
+    func exists(title: String, artist: String) -> Bool
 }
 
 class SongDAO: SongDAOProtocol {
@@ -42,6 +44,7 @@ class SongDAO: SongDAOProtocol {
     }
 
     func update(_ song: Song) throws {
+        song.updatedAt = Date()
         try context.save()
     }
 
@@ -56,6 +59,17 @@ class SongDAO: SongDAOProtocol {
         let descriptor = FetchDescriptor<Song>(predicate: predicate)
         return try context.fetch(descriptor)
     }
+    
+    func fetchRecentSongs(limit: Int = 5) throws -> [Song] {
+        var descriptor = FetchDescriptor<Song>(
+            predicate: nil,
+            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+        )
+        descriptor.fetchLimit = limit
+        return try context.fetch(descriptor)
+    }
+
+
 
     func search(byGoal goal: String) throws -> [Song] {
         let predicate = #Predicate<Song> { $0.goal == goal }
@@ -68,25 +82,18 @@ class SongDAO: SongDAOProtocol {
         let descriptor = FetchDescriptor<Song>(predicate: predicate)
         return try context.fetch(descriptor)
     }
-    
-    func addSong(from result: CifraClubResult) {
-           let song = Song(
-               title: result.name,
-               artist: result.artist,
-               type: "Imported",
-               status: "",
-               goal: ""
-           )
 
-           song.lyrics = result.cifra.joined(separator: "\n")
-           song.source = .CIFRA_CLUB
+    func exists(title: String, artist: String) -> Bool {
+        let descriptor = FetchDescriptor<Song>()
 
-           context.insert(song)
+        guard let songs = try? context.fetch(descriptor) else { return false }
 
-           do {
-               try context.save()
-           } catch {
-               print("Erro ao salvar a música: \(error.localizedDescription)")
-           }
-       }
+        return songs.contains {
+            $0.title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ==
+            title.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() &&
+            $0.artist.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ==
+            artist.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        }
+    }
+
 }

@@ -15,4 +15,16 @@ extension Color {
     static let appAccent = Color(red: 93/255, green: 175/255, blue: 169/255)
     static let appBodyText = Color(red: 54/255, green: 109/255, blue: 99/255)
     static let appTitleText = Color(red: 40/255, green: 68/255, blue: 93/255)
+
+    static func fromString(_ name: String) -> Color {
+        switch name.lowercased() {
+        case "yellow": return .yellow
+        case "red": return .red
+        case "blue": return .blue
+        case "green": return .green
+        case "orange": return .orange
+        default: return .gray
+        }
+    }
 }
+

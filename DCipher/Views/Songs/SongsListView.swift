@@ -7,13 +7,24 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 
 struct SongsListView: View {
     @Environment(\.modelContext) private var context
-    @State private var viewModel: SongViewModel? = nil
+    @StateObject private var viewModel = SongViewModel()
     @State private var showingOptions = false
     @State private var showCreateView = false
     @State private var showSearchView = false
+    @State private var selectedSong: Song? = nil
+    @State private var isSearching = false
+    @State private var searchText = ""
+    @State private var showAddToSetlistModal = false
+    @Query(sort: \Song.title) private var songs: [Song]
+    @State private var songToAddToSetlist: Song? = nil
+    @State private var isAddingToSetlist = false
+    @StateObject private var setlistViewModel = SetlistViewModel(context: nil)
+
+
     
     var body: some View {
         NavigationStack {
@@ -21,22 +32,33 @@ struct SongsListView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     ScrollView {
                         VStack(spacing: 12) {
-                            if let viewModel = viewModel {
-                                ForEach(viewModel.songs, id: \.id) { song in
-                                    SongRowView(viewModel: SongRowViewModel(song: song))
-                                }
-                            } else {
-                                ProgressView()
-                                    .onAppear {
-                                        viewModel = SongViewModel(context: context)
-                                    }
+                            if isSearching {
+                                TextField("Search your songs...", text: $searchText)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .padding(.horizontal)
+                            }
+                            
+                            ForEach(filteredSongs, id: \.id) { song in
+                                SongRow(
+                                    song: song,
+                                    selectedSong: $selectedSong,
+                                    isAddingToSetlist: $isAddingToSetlist,
+                                    songToAddToSetlist: $songToAddToSetlist
+                                )
+                                .environmentObject(viewModel)
+                            }
+
+                            if songs.isEmpty {
+                                Text("No songs yet. Add one!")
+                                    .foregroundColor(.gray)
+                                    .padding(.top, 20)
                             }
                         }
                     }
                 }
                 .padding()
                 .background(Color.appBackground)
-
+                
                 if showingOptions {
                     VStack(spacing: 12) {
                         Button(action: {
@@ -46,7 +68,7 @@ struct SongsListView: View {
                             Text("Import new music")
                         }
                         .buttonStyle(OptionButtonStyle())
-
+                        
                         Button(action: {
                             showCreateView = true
                             showingOptions = false
@@ -68,7 +90,6 @@ struct SongsListView: View {
                     .zIndex(1)
                 }
             }
-            // 👇 Todos os modificadores aqui, fora do ZStack
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -76,15 +97,18 @@ struct SongsListView: View {
                         .font(.fliegeMonoMedium(size: 28))
                         .foregroundColor(.appTitleText)
                 }
-
+                
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button {
-                        showSearchView = true
+                        withAnimation {
+                            isSearching.toggle()
+                            searchText = ""
+                        }
                     } label: {
-                        Image(systemName: "magnifyingglass")
+                        Image(systemName: isSearching ? "xmark" : "magnifyingglass")
                             .foregroundColor(.appTitleText)
                     }
-
+                    
                     Button {
                         withAnimation(.easeInOut) {
                             showingOptions.toggle()
@@ -100,16 +124,52 @@ struct SongsListView: View {
             .toolbarBackground(Color.appBackgroundComponents, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .onAppear {
+                if !viewModel.isConfigured {
+                    viewModel.configure(with: context)
+                }
+                setlistViewModel.updateContext(context)
+            }
+            .sheet(isPresented: $isAddingToSetlist) {
+                if let song = songToAddToSetlist {
+                    AddToSetlistModalView(
+                        song: song,
+                        isPresented: $isAddingToSetlist,
+                        viewModel: setlistViewModel
+                    )
+                }
+            }
+            .onChange(of: isAddingToSetlist) { value in
+                if value && songToAddToSetlist == nil {
+                    isAddingToSetlist = false
+                }
+            }
+
             .navigationDestination(isPresented: $showCreateView) {
-                CreateOriginalSongView(viewModel: viewModel ?? SongViewModel(context: context))
+                CreateOriginalSongView(viewModel: viewModel ?? SongViewModel())
             }
             .navigationDestination(isPresented: $showSearchView) {
-                SearchView()
+                SearchView() // aqui também
             }
+            .navigationDestination(item: $selectedSong) { song in
+                SavedSongDetailView(viewModel: SavedSongDetailViewModel(song: song, context: context))
+            }
+            
         }
     }
-
+    
+    var filteredSongs: [Song] {
+        if searchText.isEmpty {
+            return songs
+        }
+        return songs.filter {
+            $0.title.localizedCaseInsensitiveContains(searchText) ||
+            $0.artist.localizedCaseInsensitiveContains(searchText)
+        }
+    }
 }
+
+
 
 struct OptionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
