@@ -23,6 +23,10 @@ class OnboardingViewModel: ObservableObject {
     func saveGenresAndFinish() {
         hasSeenOnboarding = true
         UserDefaults.standard.set(true, forKey: UserDefaultsKeys.hasSeenOnboarding)
-        UserDefaults.standard.set(selectedGenres, forKey: UserDefaultsKeys.userGenres)
+
+        if let encoded = try? JSONEncoder().encode(selectedGenres) {
+            UserDefaults.standard.set(encoded, forKey: UserDefaultsKeys.userGenres)
+        }
     }
+
 }

@@ -77,7 +77,7 @@ class SearchViewModel: ObservableObject {
             self.progress = 0
         }
 
-        let apiBaseURL = "http://192.168.0.133:3000"
+        let apiBaseURL = "http://localhost:3000"
         let artistSlugs = generateArtistSlugVariations(from: artist, song: song)
 
         await MainActor.run {

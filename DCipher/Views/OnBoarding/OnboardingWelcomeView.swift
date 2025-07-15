@@ -39,9 +39,9 @@ struct OnboardingWelcomeView: View {
             .padding()
             .background(Color.appBackground.ignoresSafeArea())
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink("Skip", destination: TabNavigationView())
-                }
+//                ToolbarItem(placement: .topBarTrailing) {
+//                    NavigationLink("Skip", destination: TabNavigationView())
+//                }
             }
         }
     }

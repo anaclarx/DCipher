@@ -14,7 +14,31 @@ struct SongRowView: View {
     let onAddToSetlist: () -> Void
 
     var body: some View {
-        HStack {
+        HStack(alignment: .top, spacing: 12) {
+            if let urlString = viewModel.artworkUrl, let url = URL(string: urlString) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                            .frame(width: 50, height: 50)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 50, height: 50)
+                            .clipped()
+                            .cornerRadius(6)
+                    case .failure:
+                        Image(systemName: "music.note")
+                            .resizable()
+                            .frame(width: 50, height: 50)
+                            .foregroundColor(.gray)
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+            }
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(viewModel.title)
                     .font(.fliegeMonoMedium(size: 16))

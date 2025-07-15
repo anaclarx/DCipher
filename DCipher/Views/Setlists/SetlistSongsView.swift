@@ -20,6 +20,7 @@ struct SetlistSongsView: View {
     @Environment(\.modelContext) private var context
     @State var songViewModel: SongRowViewModel?
 
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -30,7 +31,9 @@ struct SetlistSongsView: View {
                 Spacer()
             }
             .padding(.top)
-
+            Text("Songs")
+                .font(.fliegeMonoRegular(size: 16))
+                .foregroundColor(.appBodyText)
             ScrollView {
                 VStack(spacing: 12) {
                     ForEach(viewModel.songs, id: \.id) { song in

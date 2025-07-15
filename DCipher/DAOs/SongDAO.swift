@@ -69,6 +69,13 @@ class SongDAO: SongDAOProtocol {
         return try context.fetch(descriptor)
     }
 
+    func get(title: String, artist: String) -> Song? {
+        let descriptor = FetchDescriptor<Song>(
+            predicate: #Predicate { $0.title == title && $0.artist == artist },
+            sortBy: []
+        )
+        return try? context.fetch(descriptor).first
+    }
 
 
     func search(byGoal goal: String) throws -> [Song] {

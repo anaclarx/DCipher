@@ -69,7 +69,7 @@ struct CreateOriginalSongView: View {
                     dismiss()
                 }) {
                     Text("Save Song")
-                        .font(.fliegeMonoRegular(size: 18))
+                         .font(.fliegeMonoRegular(size: 18))
                         .foregroundColor(.white)
                         .padding()
                         .frame(maxWidth: .infinity)

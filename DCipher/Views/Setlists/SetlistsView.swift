@@ -12,6 +12,20 @@ struct SetlistsListView: View {
     @Environment(\.modelContext) private var context
     @StateObject private var viewModel: SetlistViewModel
     @State private var showingCreateModal = false
+    @State private var searchText = ""
+    @State private var selectedTypeFilter: String = "All"
+    @State private var isSearching = false
+
+    let types = ["All", "Practice", "Performance", "Recording"]
+    var filteredSetlists: [Setlist] {
+        viewModel.setlists.filter { setlist in
+            let matchesTitle = searchText.isEmpty || setlist.title.localizedCaseInsensitiveContains(searchText)
+            let matchesType = selectedTypeFilter == "All" || setlist.type == selectedTypeFilter
+            return matchesTitle && matchesType
+        }
+    }
+
+
 
     init() {
         // Inicialização com placeholder (substituído no onAppear)
@@ -23,7 +37,22 @@ struct SetlistsListView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     VStack(spacing: 12) {
-                        ForEach(viewModel.setlists, id: \.id) { setlist in
+                        if isSearching {
+                            TextField("Search setlists...", text: $searchText)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .padding(.horizontal)
+
+                            Picker("Type", selection: $selectedTypeFilter) {
+                                ForEach(types, id: \.self) { type in
+                                    Text(type)
+                                        .font(.fliegeMonoRegular(size: 14))
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .padding(.horizontal)
+                        }
+
+                        ForEach(filteredSetlists, id: \.id) { setlist in
                             SetlistRowView(
                                 setlist: setlist,
                                 viewModel: viewModel
@@ -45,13 +74,22 @@ struct SetlistsListView: View {
                         .font(.fliegeMonoMedium(size: 28))
                         .foregroundColor(.appTitleText)
                 }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        withAnimation {
+                            isSearching.toggle()
+                            searchText = ""
+                        }
+                    } label: {
+                        Image(systemName: isSearching ? "xmark" : "magnifyingglass")
+                            .foregroundColor(.appTitleText)
+                    }
 
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
+                    Button {
                         withAnimation(.easeInOut) {
                             showingCreateModal.toggle()
                         }
-                    }) {
+                    } label: {
                         Image(systemName: showingCreateModal ? "xmark" : "plus")
                             .foregroundColor(.appTitleText)
                             .rotationEffect(.degrees(showingCreateModal ? 90 : 0))

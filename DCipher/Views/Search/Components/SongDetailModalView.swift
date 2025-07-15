@@ -2,28 +2,13 @@
 //  SongDetailModalView.swift
 //  DCipher
 //
-//  Created by Ana Clara Filgueiras Granato on 11/07/25.
-//
-
-
-//
-//  SongModalView.swift
-//  DCipher
-//
 //  Created by Ana Clara Filgueiras Granato on 09/07/25.
 //
-
-//
-//  SongModalView.swift
-//  DCipher
-//
-//  Created by Ana Clara Filgueiras Granato on 09/07/25.
-//
-
 import SwiftUI
 
 struct SongDetailModalView: View {
     let song: CifraClubResult
+    let imageUrl: String?
     let onAdd: () -> Void
 
     @ObservedObject var viewModel: SearchViewModel
@@ -32,8 +17,9 @@ struct SongDetailModalView: View {
 
     @State private var showDuplicateAlert = false
 
-    init(song: CifraClubResult, onAdd: @escaping () -> Void, viewModel: SearchViewModel) {
+    init(song: CifraClubResult, imageUrl: String?, onAdd: @escaping () -> Void, viewModel: SearchViewModel) {
         self.song = song
+        self.imageUrl = imageUrl
         self.onAdd = onAdd
         self._viewModel = ObservedObject(initialValue: viewModel)
     }
@@ -69,7 +55,7 @@ struct SongDetailModalView: View {
             Spacer()
 
             Button(action: {
-                let success = songViewModel.addSong(from: song)
+                let success = songViewModel.addSong(from: song, imageUrl: imageUrl)
                 if success {
                     onAdd()
                 } else {

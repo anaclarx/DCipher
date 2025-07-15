@@ -58,7 +58,8 @@ struct NoteEditorView: View {
                     }
                 }
             }
-            .navigationTitle(note == nil ? "Nova Nota" : "Editar Nota")
+
+            .navigationTitle(note == nil ? "New Note" : "Edit Note")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {

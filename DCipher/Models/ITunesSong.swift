@@ -17,6 +17,7 @@ struct ITunesSong: Decodable, Identifiable {
     let trackId: Int
     let trackName: String
     let artistName: String
+    let artworkUrl100: String?
     
     var id: Int { trackId }
 }

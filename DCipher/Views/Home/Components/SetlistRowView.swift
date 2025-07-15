@@ -14,7 +14,7 @@ struct SetlistRowView: View {
     @ObservedObject var viewModel: SetlistViewModel
     @Environment(\.modelContext) private var context
     @State private var showDeleteAlert = false
-
+    
     var body: some View {
         HStack {
             NavigationLink(destination: SetlistSongsView(viewModel: SetlistSongsViewModel(setlist: setlist, context: context))) {
@@ -30,6 +30,10 @@ struct SetlistRowView: View {
                         Text("\(setlist.songs.count) song(s)")
                             .font(.subheadline)
                             .foregroundColor(.appPrimary)
+                        Text(setlist.type)
+                            .font(.fliegeMonoRegular(size: 12))
+                            .foregroundColor(.appBodyText)
+
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

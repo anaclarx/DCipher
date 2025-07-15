@@ -34,13 +34,67 @@ struct SavedSongDetailView: View {
                         .foregroundColor(.appBodyText)
                 }
 
-                // Campos editáveis
-                Group {
-                    EditableField(label: "Status", text: $viewModel.song.status)
-                    EditableField(label: "Type", text: $viewModel.song.type)
-                    EditableField(label: "Goal", text: $viewModel.song.goal)
-                }
+                VStack(spacing: 12) {
+                    // Type (somente leitura)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Type")
+                            .font(.fliegeMonoRegular(size: 14))
+                            .foregroundColor(.appBodyText)
+                        Text(viewModel.song.type.capitalized)
+                            .font(.fliegeMonoMedium(size: 14))
+                            .frame(maxWidth: .infinity)
+                            .padding(10)
+                            .background(Color.white)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.appBodyText, lineWidth: 1)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
 
+                    // Goal
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Goal")
+                            .font(.fliegeMonoRegular(size: 14))
+                            .foregroundColor(.appBodyText)
+                        Picker("Goal", selection: $viewModel.song.goal) {
+                            ForEach(Goal.allCases, id: \.self) { goal in
+                                Text(goal.rawValue.capitalized).tag(goal.rawValue)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: .infinity)
+                        .padding(10)
+                        .background(Color.white)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.appBodyText, lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+
+
+                    // Status
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Status")
+                            .font(.fliegeMonoRegular(size: 14))
+                            .foregroundColor(.appBodyText)
+                        Picker("Status", selection: $viewModel.song.status) {
+                            ForEach(Status.allCases, id: \.self) { status in
+                                Text(status.rawValue.capitalized).tag(status.rawValue)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .frame(maxWidth: .infinity)
+                        .padding(10)
+                        .background(Color.white)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.appBodyText, lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                }
                 // Notas associadas à música
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Notes")

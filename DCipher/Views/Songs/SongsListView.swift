@@ -19,10 +19,13 @@ struct SongsListView: View {
     @State private var isSearching = false
     @State private var searchText = ""
     @State private var showAddToSetlistModal = false
-    @Query(sort: \Song.title) private var songs: [Song]
+    @State private var songs: [Song] = []
     @State private var songToAddToSetlist: Song? = nil
     @State private var isAddingToSetlist = false
     @StateObject private var setlistViewModel = SetlistViewModel(context: nil)
+    @State private var selectedGoal: Goal? = nil
+    @State private var selectedStatus: Status? = nil
+
 
 
     
@@ -37,6 +40,54 @@ struct SongsListView: View {
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .padding(.horizontal)
                             }
+                            HStack(spacing: 16) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Goal")
+                                        .font(.fliegeMonoRegular(size: 14))
+
+                                    Picker("Goal", selection: $selectedGoal) {
+                                        Text("All").tag(nil as Goal?)
+                                        ForEach(Goal.allCases, id: \.self) {
+                                            Text($0.rawValue.capitalized)
+                                                .lineLimit(1)
+                                                .tag(Optional($0))
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .padding(.horizontal, 12)
+                                    .frame(minWidth: 140, maxWidth: .infinity, minHeight: 36)
+                                    .background(Color.white)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.appBodyText, lineWidth: 1)
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Status")
+                                        .font(.fliegeMonoRegular(size: 14))
+
+                                    Picker("Status", selection: $selectedStatus) {
+                                        Text("All").tag(nil as Status?)
+                                        ForEach(Status.allCases, id: \.self) {
+                                            Text($0.rawValue.capitalized)
+                                                .lineLimit(1)
+                                                .tag(Optional($0))
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .padding(.horizontal, 12)
+                                    .frame(minWidth: 140, maxWidth: .infinity, minHeight: 36)
+                                    .background(Color.white)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.appBodyText, lineWidth: 1)
+                                    )
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
+                            }
+                            .padding(.horizontal)
                             
                             ForEach(filteredSongs, id: \.id) { song in
                                 SongRow(
@@ -46,6 +97,7 @@ struct SongsListView: View {
                                     songToAddToSetlist: $songToAddToSetlist
                                 )
                                 .environmentObject(viewModel)
+                                .id(song.id)
                             }
 
                             if songs.isEmpty {
@@ -125,10 +177,9 @@ struct SongsListView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
             .onAppear {
-                if !viewModel.isConfigured {
-                    viewModel.configure(with: context)
-                }
+                viewModel.configure(with: context)
                 setlistViewModel.updateContext(context)
+                songs = viewModel.fetchAllSongs()
             }
             .sheet(isPresented: $isAddingToSetlist) {
                 if let song = songToAddToSetlist {
@@ -139,14 +190,14 @@ struct SongsListView: View {
                     )
                 }
             }
-            .onChange(of: isAddingToSetlist) { value in
-                if value && songToAddToSetlist == nil {
+            .onChange(of: isAddingToSetlist) { oldValue, newValue in
+                if newValue && songToAddToSetlist == nil {
                     isAddingToSetlist = false
                 }
             }
 
             .navigationDestination(isPresented: $showCreateView) {
-                CreateOriginalSongView(viewModel: viewModel ?? SongViewModel())
+                CreateOriginalSongView(viewModel: viewModel)
             }
             .navigationDestination(isPresented: $showSearchView) {
                 SearchView() // aqui também
@@ -159,14 +210,18 @@ struct SongsListView: View {
     }
     
     var filteredSongs: [Song] {
-        if searchText.isEmpty {
-            return songs
-        }
-        return songs.filter {
-            $0.title.localizedCaseInsensitiveContains(searchText) ||
-            $0.artist.localizedCaseInsensitiveContains(searchText)
+        songs.filter { song in
+            let matchesSearch = searchText.isEmpty ||
+                song.title.localizedCaseInsensitiveContains(searchText) ||
+                song.artist.localizedCaseInsensitiveContains(searchText)
+
+            let matchesGoal = selectedGoal == nil || song.goal == selectedGoal?.rawValue
+            let matchesStatus = selectedStatus == nil || song.status == selectedStatus?.rawValue
+
+            return matchesSearch && matchesGoal && matchesStatus
         }
     }
+
 }
 
 

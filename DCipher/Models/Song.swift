@@ -18,6 +18,8 @@ final class Song: Hashable, Equatable {
     var status: String
     var goal: String
     var updatedAt: Date = Date()
+    var artworkUrl: String?
+    var itunesID: Int?
 
     @Relationship var notes: [Note]
     

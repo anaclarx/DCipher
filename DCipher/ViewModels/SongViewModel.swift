@@ -32,8 +32,24 @@ class SongViewModel: ObservableObject {
             print("Error fetching songs: \(error)")
         }
     }
+    
+    func fetchAllSongs() -> [Song] {
+        guard let dao else { return [] }
+        do {
+            return try dao.fetchAll()
+        } catch {
+            print("Error fetching songs: \(error)")
+            return []
+        }
+    }
 
-    func addSong(from result: CifraClubResult) -> Bool {
+    
+    func refresh() {
+        loadAllSongs()
+    }
+
+
+    func addSong(from result: CifraClubResult, imageUrl: String?) -> Bool {
         guard let dao else { return false }
 
         if dao.exists(title: result.name, artist: result.artist) {
@@ -44,12 +60,13 @@ class SongViewModel: ObservableObject {
         let song = Song(
             title: result.name,
             artist: result.artist,
-            type: "imported",
-            status: "new",
-            goal: "study"
+            type: "Imported",
+            status: "",
+            goal: ""
         )
         song.lyrics = result.cifra.joined(separator: "\n")
         song.source = .CIFRA_CLUB
+        song.artworkUrl = imageUrl // ✅ salva imagem aqui
 
         do {
             try dao.create(song)
@@ -89,6 +106,31 @@ class SongViewModel: ObservableObject {
         } catch {
             print("Search error: \(error)")
         }
+    }
+    
+    func convertRecommendationToSong(_ recommendation: ITunesSong) -> Song {
+        let song = Song(
+            title: recommendation.trackName,
+            artist: recommendation.artistName,
+            type: "imported",
+            status: "new",
+            goal: "study"
+        )
+        song.artworkUrl = recommendation.artworkUrl100 // atribuição direta
+        song.source = .CIFRA_CLUB
+        return song
+    }
+
+
+
+    func saveRecommendedSong(_ song: Song) {
+        guard let dao else { return }
+        if dao.exists(title: song.title, artist: song.artist) {
+            print("🎵 Já existe")
+            return
+        }
+        try? dao.create(song)
+        loadAllSongs()
     }
 }
 

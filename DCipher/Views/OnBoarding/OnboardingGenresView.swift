@@ -17,9 +17,6 @@ struct OnboardingGenresView: View {
         VStack(spacing: 24) {
             HStack {
                 Spacer()
-                Button("Skip") {
-                    shouldNavigateToMenu = true
-                }
                 .font(.fliegeMonoMedium(size: 16))
                 .padding(.trailing)
             }

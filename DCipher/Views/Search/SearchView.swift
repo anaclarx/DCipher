@@ -158,6 +158,7 @@ struct SearchView: View {
             .sheet(item: $selectedResult) { result in
                 SongDetailModalView(
                     song: result,
+                    imageUrl: viewModel.searchResults.first(where: { $0.trackName == result.name })?.artworkUrl100,
                     onAdd: {
                         selectedResult = nil
                     },

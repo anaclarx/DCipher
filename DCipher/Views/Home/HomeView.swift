@@ -51,6 +51,7 @@ struct HomeView: View {
             .background(Color.appBackground)
             .onAppear {
                 viewModel.loadData(using: context)
+                viewModel.fetchRecommendations() 
                 setlistViewModel.updateContext(context)
             }
             .navigationDestination(item: $selectedSetlist) { setlist in
@@ -71,7 +72,12 @@ struct HomeView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(viewModel.recommendations.indices, id: \.self) { index in
-                        RecommendationCardView(viewModel: viewModel.recommendations[index])
+                        RecommendationCardView(viewModel: viewModel.recommendations[index], onAdded: {
+                            let song = viewModel.recommendations[index].song
+                            viewModel.removeRecommendation(song)
+                            viewModel.loadData(using: context)
+                        })
+                        .environmentObject(songViewModel)
                     }
                 }
                 .padding(.horizontal)
